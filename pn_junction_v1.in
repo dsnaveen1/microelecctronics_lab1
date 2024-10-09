@@ -42,10 +42,30 @@ electrode name=cathode x=0.175
 SAVE name=$'name'_VP_sv conformalstr
 go victoryd
 MESH inf=$'name'_VP_sv_exVC.str
-MODELS conmob fldmob bgn consrh auger print 
+MODELS conmob fldmob bgn consrh auger print
 solve init
-solve prev
-log outfile=$'pn_junct_sim.log'
-solve vanode=-2v step=0.2v final=2.0 name=anode
-saveoutfile=$'pn_junct_sim1'
+save outfile = no_bias.str
+log outf = IV.log
+#Load name=pn_junction_diode_VP_sv_exVC.str
+#mesh.auto
+#electrode name=anode voltage=0.7
+#electrode name=cathode voltage=0.0
+
+solve vanode=0.7
+solve vcathode=0.0
+solve init
+
+
+plot.2d y.section distance=0.5 variable="band_diagram"
+#solve vanode = 0 vstep = 0.01 vfinal = 0.8 name = anode
+
+GO victoryextract
+victoryvisual $'name'_VP_sv_exVC.str
+extract init name="energy_band" (band="conduction,valence") x.cutline="0,0,0,1"
+save outfile = final_bias.str
+#solve init
+#solve prev
+#log outfile=$'pn_junct_sim.log'
+#solve vanode=-2v step=0.2v final=2.0 name=anode
+#saveoutfile=$'pn_junct_sim1'
 quit
