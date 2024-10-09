@@ -1,0 +1,51 @@
+#p-n junction diode
+#required module
+#1 victory process
+#2 difussion and ion implantation
+#3 deposition
+#4 etching process 
+#5 module
+#6 device simulation
+
+#name 
+set name = "pn_junction_diode"
+
+#process simulation
+go victoryprocess simflags="-P 4"
+INIT meshdepth=2 from=0 to=0.3 depth=0.6 gasheight=2.75 resolution=0.02,0.02 material=silicon dopants="boron" dopingvalues="2e16"
+
+#mesh
+line x location=0.0 spacing=0.01
+line x location=0.3 spacing=0.01
+line x location=0.2 spacing=0.001
+line x location=0.3 spacing=0.05
+
+line y location=0.0 spacing=0.1
+line y location=0.4 spacing=0.01
+line y location=0.6 spacing=0.005
+
+deposit material oxide thickness=0.05 max
+etch material=oxide between.x="0.1,0.2"max
+implant Phosphorus dose=2.0e13 energy=8
+diffuse time=5 temperature=850
+etch material=oxide outside.x="0.1,0.2"max
+implant Phosphorus dose=2.0e13 energy=8
+diffuse time=5 temperature=850
+etch material=oxide outside.x="0.1,0.2"max
+#save name=pn_junction_vp_mech.str
+deposit material=oxide thickness=0.05 max
+etch material=oxide between.x="0.125,0.175"max
+etch material=oxide between.x="0.225,0.275"max
+deposit conformal material=aluminium thickness=0.05
+electrode name=anode x=0.15
+electrode name=cathode x=0.175
+SAVE name=$'name'_VP_sv conformalstr
+go victoryd
+MESH inf=$'name'_VP_sv_exVC.str
+MODELS conmob fldmob bgn consrh auger print 
+solve init
+solve prev
+log outfile=$'pn_junct_sim.log'
+solve vanode=-2v step=0.2v final=2.0 name=anode
+saveoutfile=$'pn_junct_sim1'
+quit

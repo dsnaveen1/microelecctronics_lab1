@@ -1,0 +1,37 @@
+####################################################
+# simulation of a silicon pn-diode
+####################################################
+go victoryd
+mesh space.mult=1.0
+set x_n = 0.5
+set x_p = 0.5
+set x_tot = $x_n + $x_p
+#
+x.mesh loc=0.00 spac=0.01
+x.mesh loc=$x_n spac=0.0001
+x.mesh loc=$x_tot spac=0.01
+#
+y.mesh loc=0 spac=0.05
+y.mesh loc=0.10 spac=0.05
+# REGIONS AND ELECTRODES
+region num=1 y.min=0 silicon
+elect num=1 name=cathode y.min=0.0 y.max=0.1 x.min = 0 x.max = 0
+elect num=2 name=anode y.min=0.0 y.max=0.1 x.min = $x_tot x.max = $x_tot
+# DEVICE DOPING
+doping uniform n.type conc=1.e18 x.max = $x_n
+doping uniform p.type x.min = $x_n conc=1.e18
+# MATERIAL CONTACT INTERFACE MODELS METHOD
+models temp=300 conmob fldmob
+method newton trap
+output con.band
+output val.band
+# INITIAL SOLUTION
+solve init
+save outfile = no_bias.str
+####################################################
+# RAMP THE ANODE VOLTAGE
+####################################################
+log outf = IV.log
+solve vanode = 0 vstep = 0.01 vfinal = 0.8 name = anode
+save outfile = final_bias.str
+qui
