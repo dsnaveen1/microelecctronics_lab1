@@ -1,0 +1,129 @@
+# Start of the Atlas simulation
+go atlas
+
+# Step 1: Define the Mesh
+# Create a 2D mesh with coordinates specifying the region sizes
+mesh space.mult=1.0
+x.mesh loc=0.0 spac=0.1
+x.mesh loc=5.0 spac=0.5
+x.mesh loc=10.0 spac=0.1
+
+y.mesh loc=0.0 spac=0.1
+y.mesh loc=1.0 spac=0.1
+y.mesh loc=5.0 spac=0.1
+
+# Step 2: Define the Regions
+# Specify the material and doping levels for each region
+region num=1 material=silicon
+
+# Step 4: Define the Electrodes
+# Place contacts for anode and cathode
+electr  name=anode  x.min=5  length=2
+electr  name=cathode  bot
+
+# Step 3: Define the Doping Profile
+# N-type and P-type regions with specific doping concentrations
+# Define P-type substrate
+doping reg=1 y.min=0.0 y.max=1.0 uniform conc=1e16 p.type
+
+# Define N-type region (top layer)
+doping reg=1 y.min=1.0 y.max=5.0 uniform conc=1e18 n.type
+
+save outf=pn_diode.str
+tonyplot pn_diode.str -set pn_diode.set
+
+#electrode name=anode x.min=0.0 x.max=10.0 y.min=0.0
+#electrode name=cathode x.min=0.0 x.max=10.0 y.min=5.0
+
+# Step 5: Define Material Models
+# Define recombination models and mobility models
+model    conmob  fldmob  srh  auger  bgn bbt.kl trap.tunnel 
+contact    name=anode workf=4.3
+
+# Step 6: Initial Solution
+solve init
+
+# Step 7: DC Simulation - Plot Energy Band Diagram at 0V Bias
+solve vstep=0.0 vfinal=0.0 name=anode
+#tonyplot band.bandgap
+
+# Step 8: Forward Bias Simulation
+solve vstep=0.1 vfinal=0.8 name=anode
+log outf=pn_junction_forward.log
+#tonyplot band.bandgap
+
+# Step 9: Reverse Bias Simulation
+solve vstep=-0.1 vfinal=-5 name=anode
+log outf=pn_junction_reverse.log
+#tonyplot band.bandgap
+
+method newton
+
+output val.band con.band
+
+save outf=pn_diode_conduction.str
+save outf=pn_diode_test.str
+
+solve  vanode=0  vstep=-0.1  vfinal=-20  name=anode
+
+# Output band edges
+output band.temp
+save outf=energy_band.str
+save outf=pn_diode_test.str
+log outf=energy_band.log
+
+#Energy band diagram at 0.8 V 
+solve  vanode=0.8  vstep=-0.1  vfinal=-20  name=anode
+
+# Output band edges
+output band.temp
+save outf=energy_band_08.str
+
+#Energy band diagram at 0.8 V 
+solve  vanode=5  vstep=-0.1  vfinal=-20  name=anode
+
+# Output band edges
+output band.temp
+save outf=energy_band_5.str
+
+log   outfile=pn_diode_01_srh.log
+solve      vanode=-20  vstep=0.1  vfinal=5  name=anode
+tonyplot pn_diode_01_srh.log -pn_diode_01_srh_log.set
+
+# Save the structure for visualization
+save outf=pn_diode_01_srh.str
+
+# Physical models: Band-to-Band Tunneling (BTBT) with E2 model
+
+
+log   outfile=pn_diode_01_btbt.log
+solve      vanode=5  vstep=-0.1  vfinal=-20  name=anode
+tonyplot pn_diode_01_btbt.log -pn_diode_01_btbt_log.set
+
+# Save the structure for visualization
+save outf=pn_diode_01_btbt.str
+
+# Physical models: Both SRH and BTBT (E2)
+
+log   outfile=pn_diode_01_btbt_srh.log
+solve      vanode=5  vstep=-0.1  vfinal=-20  name=anode
+tonyplot pn_diode_01_btbt_srh.log -pn_diode_01_btbt_srh_log.set
+
+# Save the structure for visualization
+save outf=pn_diode_01_btbt_srh.str
+
+
+# Step 11: End of the Simulation
+quit
+
+
+
+
+
+
+
+
+
+
+
+
